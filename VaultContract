@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+library SafeMath{
+    function add(uint a, uint b) internal pure returns (uint){
+        uint c = a + b;
+        require(c >= a,"Add overflow");
+        return c;
+    }
+    function sub(uint a, uint b) internal pure returns (uint){
+        require(b <= a,"Sub underflow");
+        return a - b;
+    }
+}
+
+contract VaultBase{
+    using SafeMath for uint;
+    mapping(address => uint) public balances;
+
+    event Deposit(address indexed user, uint amount);
+    event Withdraw(address indexed user, uint amount);
+}
+
+contract VaultManager is VaultBase{
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit > 0");
+        balances[msg.sender] = balances[msg.sender].add(msg.value);
+        emit Deposit(msg.sender, msg.value); // emitted on deposit
+  }
+
+    function withdraw(uint amount) external {
+        require(amount > 0 && balances[msg.sender] >= amount, "Not enough funds");
+        balances[msg.sender] = balances[msg.sender].sub(amount);
+        payable(msg.sender).transfer(amount);
+        emit Withdraw(msg.sender, amount); // emitted on withdrawal
+   }
+}
